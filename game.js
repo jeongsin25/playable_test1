@@ -4,14 +4,15 @@ var ctx = canvas.getContext("2d");
 // var x = canvas.width/2;
 // var y = canvas.height - 30;
 var x = 225; // 동그라미 X 위치 (실시간으로 바뀜)
-var y = 750; // 동그라미 Y 위치 (실시간으로 바뀜)
-var move_x = 10;  // 이동거리 X
-var move_y = 10;  // 이동거리 Y
+var y = 640; // 동그라미 Y 위치 (실시간으로 바뀜)
+var move_x = -10;  // 이동거리 X
+var move_y = -10;  // 이동거리 Y
 var ballRadius = 10;  // 동그라미 반지름
 var count = 0;  // 속도조절때 쓰이는 변수
 var paddleWidth = 100; // 패틀 X 크기
-var paddleHeight = 10; // 패들 Y 크기
+var paddleHeight = 20; // 패들 Y 크기
 var paddleX = (canvas.width - paddleWidth)/2;  // 패들 X 위치
+var paddleY = 650;  // 패들 Y 위치
 var rightbutton = false;
 var leftbutton = false;
 var brickRowCount = 3;  // 벽돌 가로로 몇개만큼 배치하기
@@ -35,11 +36,11 @@ for(var c=0; c<brickColumnCount; c++) {
 
 document.addEventListener('keydown' , keyDownHandler , false);  // 키 눌렀을때
 document.addEventListener('keyup' , keyUpHandler , false);  // 키 땠을때
-document.addEventListener('mousemove' , mouseMoveHandler , false);
+document.addEventListener('mousedown' , mouseMoveHandler , false);  // 마우스를 누르고 이동시킬때
 
 
 function keyDownHandler(e){
-    console.log(e.code);
+    // console.log(e.code);
     if(e.code == "ArrowRight"){
         rightbutton = true;
     }
@@ -49,27 +50,35 @@ function keyDownHandler(e){
 }
 
 function keyUpHandler(e){
-    console.log(e.code);
+    // console.log(e.code);
     if(e.code == "ArrowRight"){
         rightbutton = false;
     }
-    else if(e.code == "ArrowLeft"){
+    else if(e.code == "ArrowLeft"){ 
         leftbutton = false;
     }
 }
 
 function mouseMoveHandler(e) {
+    var relativeX = e.clientX - canvas.offsetLeft;
+    if(relativeX > 0 && relativeX < canvas.width) {
+        paddleX = relativeX - paddleWidth/2;
+    }
+
     // console.log(e.clientX); // 마우스의 X 기준 위치
     // console.log(canvas.offsetLeft); // 캔버스와 바디 태그 사이
-    var relativeX = e.clientX - canvas.offsetLeft;
-    if(relativeX > paddleWidth/2 && relativeX < canvas.width - paddleWidth/2) {
-        paddleX = relativeX - paddleWidth/2;
-        console.log(paddleX);
-    }
+    document.addEventListener('mousemove' , function(e){
+        console.log(e.clientX);
+        var relativeX = e.clientX - canvas.offsetLeft;
+        if(relativeX > 0 && relativeX < canvas.width) {
+            paddleX = relativeX - paddleWidth/2;
+            // console.log(paddleX);
+        }
+    })
 }
 
 
-function collisionDetection() {
+function collisionDetection() {  // 공이 벽돌에 닿았을때 유효성 체크 후 없애기
     for(var c=0; c<brickColumnCount; c++) {
         for(var r=0; r<brickRowCount; r++) {
             var b = bricks[c][r];
@@ -107,7 +116,7 @@ function drawBall(){  // 동그라미 그리기
 function drawPaddle(){  // 패들 그리기
     ctx.beginPath();
     ctx.fillStyle = "rgba(0,0,0,1)";
-    ctx.fillRect(paddleX , canvas.height - paddleHeight , paddleWidth , paddleHeight);
+    ctx.fillRect(paddleX , paddleY , paddleWidth , paddleHeight);
     ctx.closePath();
 }
 
@@ -131,7 +140,7 @@ function drawBricks() {   //벽돌 그리기
 
 
 function draw(){  // 캔버스 전체적으로 그리기
-    if(count % 1 === 0){  // LIVE 라이브
+    if(count % 2 === 0){  // LIVE 라이브
         ctx.clearRect(0 , 0 , canvas.width , canvas.height);
         drawBricks();
         drawBall();
@@ -143,44 +152,34 @@ function draw(){  // 캔버스 전체적으로 그리기
     }
     count ++;
 
-    if(x + move_x < ballRadius || x + move_x > canvas.width - ballRadius){
+    if(x + move_x < ballRadius || x + move_x > canvas.width - ballRadius){  // 양 옆 벽에 닿았을때 반대편으로 튕겨주기
         move_x = -move_x;
     }
 
-    if(y + move_y < ballRadius){
+    if(y + move_y < ballRadius){  //  위에 벽 닿았을때 반대편으로 튕겨주기
         move_y = -move_y;
-    }else if(y + move_y > canvas.height - ballRadius){
-        if(x > paddleX && x < paddleX + paddleWidth){
+    }else if(y + move_y + ballRadius/2 > paddleY){ // 밑에 벽 닿았을때
+        if(x > paddleX && x < paddleX + paddleWidth){  // 패들에 닿았으면 반대편으로 튕겨주기
             move_y = -move_y;
-        }else{ //  실패했을시
+        }else{ //  패들에 닿지않고 밑에 벽에 닿았으면 실패
+            // alert(y)
             console.log('실패했을시');
-            // document.location.reload();
+            document.location.reload();
         }
     }
 
-    if(rightbutton && paddleX < canvas.width - paddleWidth){
+    if(rightbutton && paddleX < canvas.width - paddleWidth){  // 키보드 오른쪽 키 눌렀을때 이동시키기
         paddleX += 7;
-    }else if(leftbutton && paddleX > 0){
+    }else if(leftbutton && paddleX > 0){  // 키보드 왼쪽 키 눌었을때 이동시키기
         paddleX -= 7;
     }
-
+    requestAnimationFrame(draw);
     // if(x === 200){ // 애니메이션 멈추거나 진행
     //     console.log('ㅎㅇ')
     //     cancelAnimationFrame(requestAnimationFrame(draw));
     // }else{
     //     requestAnimationFrame(draw);
     // }
-    requestAnimationFrame(draw);
 }
+
 draw();
-
-canvas.addEventListener('click' , function(e){
-    console.log(e)
-})
-
-
-
-
-
-
-// setInterval(draw , 10);
