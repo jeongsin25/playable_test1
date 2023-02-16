@@ -10,9 +10,6 @@
             margin:0;
             padding:0;
         }
-        #canvas{
-            background:url('이미지/bg.png') 25% 90% / 450% no-repeat;
-        }
         html,body{
             max-width: 100%;
             overflow-x: hidden;
@@ -25,10 +22,20 @@
             height:100vh;
             overflow: hidden;
         }
+        #container{
+            max-width: 450px;
+            max-height: 800px;
+        }
+        #canvas{
+            background:url('이미지/bg.png') 25% 90% / 450% no-repeat;
+            width:100%;
+        }
     </style>
 </head>
 <body>
-    <canvas id="canvas" width="450" height="800"></canvas>
+    <div id="container">
+        <canvas id="canvas" width="450" height="800"></canvas>
+    </div>
     <script src="game.js"></script>
 </body>
 </html>

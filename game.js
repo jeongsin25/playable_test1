@@ -14,8 +14,9 @@ var paddleWidth = 100; // 패틀 X 크기
 var paddleHeight = 20; // 패들 Y 크기
 var paddleX = (canvas.width - paddleWidth)/2;  // 패들 X 위치
 var paddleY = 650;  // 패들 Y 위치
-var rightbutton = false;
-var leftbutton = false;
+var rightbutton = false;  //키보드 오른쪽 방향키 유효성 검사
+var leftbutton = false;  //키보드 왼쪽 방향키 유효성 검사
+var touchcheck = false;  //모바일 터치 유효성 검사
 var brickRowCount = 5;  // 벽돌 가로로 몇개만큼 배치하기
 var brickColumnCount = 10;  // 벽돌 세로로 몇개만큼 배치하기
 var brickWidth = 40;  // 벽돌 x 크기
@@ -25,7 +26,7 @@ var brickTop = 30;  //  벽돌 캔버스 닿지 않기 위해 상하 위치
 var brickLeft = 25;  //  벽돌 캔버스 닿지 않기 위해 좌우 위치
 var score = 0; // 스코어 설정
 
-var bricks = [];
+var bricks = [];  // 벽돌 세팅하기 (아직 생성X)
 for(var c=0; c<brickColumnCount; c++) {
     bricks[c] = [];
     for(var r=0; r<brickRowCount; r++) {
@@ -33,7 +34,6 @@ for(var c=0; c<brickColumnCount; c++) {
     }
 }
 
-var touchcheck = false;
 
 document.addEventListener('keydown' , keyDownHandler , false);  // 키보드 키 눌렀을때
 document.addEventListener('keyup' , keyUpHandler , false);  // 키보드 키 땠을때
@@ -42,6 +42,7 @@ document.addEventListener('mousemove' , mouseMoveHandler , false);  // 마우스
 document.addEventListener('mouseup' , mouseUpHandler , false);  // 마우스 터치 끝낼때
 document.addEventListener('touchstart' , touchstart , false);  // 모바일 환경에서 첫 터치했을때
 document.addEventListener('touchmove' , touchmove , false);  // 모바일 환경에서 터치 후 움직일때
+
 
 function keyDownHandler(e){  // 키보드 키 눌렀을때
     // console.log(e.code);
@@ -83,7 +84,6 @@ function mouseUpHandler(e) {  // 마우스 터치를 끝냈을때
 
 
 function touchstart(e){  // 모바일 환경에서 첫 터치했을때
-    console.log(e.touches[0].clientX - canvas.offsetLeft)
     var relativeX = e.touches[0].clientX - canvas.offsetLeft;
     if(relativeX > 0 && relativeX < canvas.width) {
         paddleX = relativeX - paddleWidth/2;
@@ -94,7 +94,6 @@ function touchmove(e){  // 모바일 환경에서 터치 후 움직일때
     if(relativeX > 0 && relativeX < canvas.width) {
         paddleX = relativeX - paddleWidth/2;
     }
-    console.log(paddleX);
 }
 
 
@@ -106,7 +105,7 @@ function collisionDetection() {  // 공이 벽돌에 닿았을때 유효성 체�
         for(var r=0; r<brickRowCount; r++) {
             var b = bricks[c][r];
             if(b.status === 1){
-                if(x > b.x && x < b.x + brickWidth && y > b.y && y < b.y + brickHeight){
+                if(x > b.x - ballWidth && x < b.x + brickWidth && y > b.y - ballHeight && y < b.y + ballHeight){
                     move_y = -move_y;
                     b.status = 0;
                     score++;
@@ -151,11 +150,6 @@ function drawBricks() {   // 벽돌 그리기
                 var brick_img = new Image();
                 brick_img.src = '이미지/벽돌/brick_1.png';
                 ctx.drawImage(brick_img , brickX , brickY , brickWidth , brickHeight);
-
-                // ctx.beginPath();
-                // ctx.fillStyle = "rgba(100,250,200,1)";
-                // ctx.fillRect(brickX, brickY, brickWidth, brickHeight);
-                // ctx.closePath();
             }
         }
     }
@@ -192,11 +186,21 @@ function draw(){  // 캔버스 전체적으로 그리기
     if(y < 0){  //  위에 벽 닿았을때 반대편으로 튕겨주기
         move_y = -move_y;
     }
-    if(y === paddleY - ballHeight && x > paddleX - ballWidth && x < paddleX + paddleWidth + ballWidth){ // 패들에 닿았으면 반대편으로 튕겨주기
+    if(y === paddleY - ballHeight && x > paddleX - ballWidth && x < paddleX + paddleWidth){ // 패들에 닿았으면 반대편으로 튕겨주기
             move_y = -move_y;
-        }
-    else if(y + move_y > paddleY){ //  패들에 닿지않고 밑에 벽에 닿았으면 실패
-        // alert(y);
+    }
+    else if(y > paddleY - ballHeight && y < paddleY - ballHeight + paddleHeight/2 && x > paddleX - ballWidth && x < paddleX + paddleWidth){  // 패들이 패들옆면에 닿았으면 다시 튕겨주기
+        move_y = -move_y;
+        move_x = -move_x;
+    }
+    else if(y> canvas.height - ballHeight){ //  패들에 닿지않고 밑에 벽에 닿았으면 실패
+        // if(confirm('또 또 또 실패했구만 그래!!! 다시 할 생각이 있느냐?')){
+        //     console.log('실패했을시');
+        //     document.location.reload();
+        // } else{
+        //     console.log('안돼!!!! 다시 해야해');
+        //     document.location.reload();
+        // }
         console.log('실패했을시');
         document.location.reload();
     }
@@ -214,5 +218,5 @@ function draw(){  // 캔버스 전체적으로 그리기
     //     requestAnimationFrame(draw);
     // }
 }
-
 draw();
+
